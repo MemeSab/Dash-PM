@@ -31,8 +31,13 @@ function App() {
   const ActiveView = views[activeView] || Overview
 
   return (
-    <div className="app">
-      <nav className="sidebar">
+    <div className="app-container">
+      <header className="app-header">
+        <h1>PM Dashboard</h1>
+        <p className="date-display">{new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      </header>
+      <div className="main-layout">
+        <nav className="sidebar">
         <div className="logo">PM Dashboard</div>
         <ul className="nav-list">
           <li onClick={() => setActiveView('overview')}>Overview</li>
