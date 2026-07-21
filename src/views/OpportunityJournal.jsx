@@ -1,338 +1,118 @@
-import { useState, useEffect } from 'react'
-import { Plus, Edit3, Trash2, Search, Filter } from 'lucide-react'
+import { useState } from 'react'
 
-const STATUSES = ['Observing', 'Validating', 'Discussing', 'Approved', 'Testing', 'Implemented', 'Measuring', 'Closed', 'Rejected']
-const PRIORITIES = ['Low', 'Medium', 'High', 'Critical']
+const observations = [
+  { id: 1, title: 'Client requesting additional checkout steps', project: 'Renais', date: '2026-07-19', observation: 'Client wants to add a gift message field during checkout', evidence: 'Email from client at 3pm', impact: 'Could delay launch by 2 days if scope not managed', priority: 'High', status: 'Validating', action: 'Discuss with client whether this is critical for launch or Phase 2' },
+  { id: 2, title: 'API rate limits approaching threshold', project: 'Planet X', date: '2026-07-18', observation: 'Third-party API usage at 85% of monthly limit', evidence: 'API dashboard screenshot from monitoring tool', impact: 'Risk of service degradation if usage spikes', priority: 'Medium', action: 'Implement caching strategy and set up alerts at 70% threshold' },
+  { id: 3, title: 'Design handoff delayed by 2 days', project: "Lunn's Jewellers", date: '2026-07-16', observation: 'Designer unavailable due to prior commitments', evidence: 'Slack message from design lead', impact: 'Development sprint may need adjustment', priority: 'Medium', action: 'Reschedule design review for Monday and communicate timeline impact' },
+  { id: 4, title: 'Team morale observation - SOUL CAP', project: 'SOUL CAP', date: '2026-07-14', observation: 'Team expressing frustration with repeated UAT cycles', evidence: 'Informal feedback in standup', impact: 'Risk to team retention and quality of work', priority: 'High', action: 'Schedule 1:1s to understand concerns and adjust process' },
+  { id: 5, title: 'Competitor launched similar feature', project: 'The Fish Society', date: '2026-07-12', observation: 'Main competitor released AI-powered product recommendations', evidence: 'Industry news article + competitor site screenshot', impact: 'May need to accelerate our roadmap or differentiate differently', priority: 'Low', action: 'Include in next quarterly planning discussion' }
+]
+
+function getStatusColor(status) {
+  if (status === 'Validating') return '#f59e0b'
+  if (status === 'Accepted') return '#00b9fb'
+  if (status === 'Rejected') return '#ef4444'
+  if (status === 'Implemented') return '#10b981'
+  return '#64748b'
+}
 
 function OpportunityJournal() {
-  const [observations, setObservations] = useState([])
-  const [showModal, setShowModal] = useState(false)
-  const [editingObs, setEditingObs] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('All')
-  const [filterPriority, setFilterPriority] = useState('All')
+  const [filter, setFilter] = useState('All')
 
-  useEffect(() => {
-    const saved = localStorage.getItem('pm-dashboard-data')
-    if (saved) {
-      try {
-        const data = JSON.parse(saved)
-        setObservations(data.opportunities || [])
-      } catch (e) {
-        console.error('Failed to load opportunities:', e)
-      }
-    }
-  }, [])
-
-  const saveData = (updatedObs) => {
-    const saved = localStorage.getItem('pm-dashboard-data') || '{}'
-    const data = JSON.parse(saved)
-    data.opportunities = updatedObs
-    localStorage.setItem('pm-dashboard-data', JSON.stringify(data))
-  }
-
-  const filteredObs = observations.filter(obs => {
-    if (filterStatus !== 'All' && obs.status !== filterStatus) return false
-    if (filterPriority !== 'All' && obs.priority !== filterPriority) return false
-    if (searchTerm && !obs.observation?.toLowerCase().includes(searchTerm.toLowerCase())) return false
-    return true
-  })
-
-  const handleSave = (obs) => {
-    const updated = editingObs ? 
-      observations.map(o => o.id === editingObs.id ? { ...obs, id: editingObs.id, updatedAt: new Date().toISOString() } : o) :
-      [...observations, { ...obs, id: Date.now().toString(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]
-    
-    saveData(updated)
-    setObservations(updated)
-    setShowModal(false)
-    setEditingObs(null)
-  }
-
-  const handleDelete = (id) => {
-    if (!confirm('Are you sure you want to delete this observation?')) return
-    
-    const updated = observations.filter(o => o.id !== id)
-    saveData(updated)
-    setObservations(updated)
-  }
+  const filteredObs = filter === 'All' 
+    ? observations 
+    : observations.filter(o => o.status === filter)
 
   return (
-    <div className="view-container">
-      <div className="page-header">
-        <h2>Opportunity Journal</h2>
-        <p className="subtitle">Recurring observations and improvement opportunities</p>
-      </div>
-
-      {/* Filters */}
-      <div className="filters-bar">
-        <div className="search-box">
-          <Search size={18} />
-          <input 
-            type="text" 
-            placeholder="Search observations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-          <option value="All">All Statuses</option>
-          {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
-          <option value="All">All Priorities</option>
-          {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
-        </select>
-        <button onClick={() => setShowModal(true)} className="btn-primary">
-          <Plus size={18} />
-          New Observation
-        </button>
-      </div>
-
-      {/* Observations List */}
-      {filteredObs.length === 0 ? (
-        <div className="empty-state">
-          <BookOpen size={48} />
-          <h3>No observations yet</h3>
-          <p>Start recording recurring patterns, issues, and improvement opportunities.</p>
-        </div>
-      ) : (
-        <div className="observations-grid">
-          {filteredObs.map(obs => (
-            <ObservationCard 
-              key={obs.id} 
-              obs={obs}
-              onEdit={() => { setEditingObs(obs); setShowModal(true) }}
-              onDelete={() => handleDelete(obs.id)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Observation Modal */}
-      {showModal && (
-        <ObservationModal 
-          obs={editingObs}
-          onSave={handleSave}
-          onClose={() => { setShowModal(false); setEditingObs(null) }}
-        />
-      )}
-    </div>
-  )
-}
-
-function ObservationCard({ obs, onEdit, onDelete }) {
-  const statusColors = {
-    Observing: '#5fa8ff',
-    Validating: '#42c98b',
-    Discussing: '#f4b860',
-    Approved: '#9b59b6',
-    Testing: '#00b9fb',
-    Implemented: '#42c98b',
-    Measuring: '#f4b860',
-    Closed: '#718098',
-    Rejected: '#ef6b73'
-  }
-
-  return (
-    <div className="observation-card">
-      <div className="obs-header">
-        <span className={`status-badge`} style={{ backgroundColor: statusColors[obs.status] || '#718098' }}>
-          {obs.status}
-        </span>
-        <span className={`priority-badge priority-${obs.priority?.toLowerCase()}`}>
-          {obs.priority}
-        </span>
-        <div className="obs-actions">
-          <button onClick={onEdit} className="btn-icon"><Edit3 size={16} /></button>
-          <button onClick={onDelete} className="btn-icon danger"><Trash2 size={16} /></button>
-        </div>
-      </div>
-
-      <h3>{obs.observation}</h3>
+    <div>
+      <h2 style={{ marginBottom: '1.5rem', fontSize: '1.75rem' }}>Opportunity Journal</h2>
       
-      {obs.dateObserved && (
-        <p className="obs-date">Observed: {new Date(obs.dateObserved).toLocaleDateString('en-GB')}</p>
-      )}
-
-      {obs.evidence && (
-        <div className="obs-section">
-          <strong>Evidence:</strong>
-          <p>{obs.evidence}</p>
-        </div>
-      )}
-
-      {obs.deliveryImpact && (
-        <div className="obs-section">
-          <strong>Delivery Impact:</strong>
-          <p>{obs.deliveryImpact}</p>
-        </div>
-      )}
-
-      {obs.improvementSuggestion && (
-        <div className="obs-section highlight">
-          <strong>Improvement:</strong>
-          <p>{obs.improvementSuggestion}</p>
-        </div>
-      )}
-
-      {obs.rootCause && (
-        <div className="obs-section">
-          <strong>Root Cause:</strong>
-          <p>{obs.rootCause}</p>
-        </div>
-      )}
-
-      {obs.peopleAffected && (
-        <p className="obs-meta">People: {obs.peopleAffected}</p>
-      )}
-    </div>
-  )
-}
-
-function ObservationModal({ obs, onSave, onClose }) {
-  const [formData, setFormData] = useState(obs || {
-    dateObserved: new Date().toISOString().split('T')[0],
-    observation: '',
-    evidence: '',
-    frequency: 'Occasional',
-    peopleAffected: '',
-    deliveryImpact: '',
-    clientImpact: '',
-    commercialImpact: '',
-    rootCause: '',
-    improvementSuggestion: '',
-    priority: 'Medium',
-    status: 'Observing',
-    nextValidationStep: '',
-    owner: '',
-    linkedProject: ''
-  })
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
-        <h2>{obs ? 'Edit Observation' : 'New Observation'}</h2>
-        
-        <form onSubmit={(e) => { e.preventDefault(); onSave(formData) }}>
-          <div className="form-grid">
-            <FormField label="Date Observed" required>
-              <input type="date" name="dateObserved" value={formData.dateObserved} onChange={handleChange} required />
-            </FormField>
-
-            <FormField label="Status" required>
-              <select name="status" value={formData.status} onChange={handleChange} required>
-                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </FormField>
-
-            <FormField label="Priority" required>
-              <select name="priority" value={formData.priority} onChange={handleChange} required>
-                {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </FormField>
-
-            <FormField label="Frequency">
-              <input name="frequency" value={formData.frequency} onChange={handleChange} placeholder="e.g., Occasional, Daily, Weekly" />
-            </FormField>
-
-            <FormField label="Owner">
-              <input name="owner" value={formData.owner} onChange={handleChange} />
-            </FormField>
-
-            <FormField label="Linked Project">
-              <input name="linkedProject" value={formData.linkedProject || ''} onChange={handleChange} placeholder="Optional" />
-            </FormField>
-          </div>
-
-          <FormField label="Observation" required>
-            <textarea 
-              name="observation" 
-              value={formData.observation} 
-              onChange={handleChange}
-              rows="2"
-              placeholder="What did you observe?"
-              required
-            />
-          </FormField>
-
-          <FormField label="Evidence">
-            <textarea 
-              name="evidence" 
-              value={formData.evidence} 
-              onChange={handleChange}
-              rows="2"
-              placeholder="What evidence supports this? (email, message, etc.)"
-            />
-          </FormField>
-
-          <div className="form-grid">
-            <FormField label="Delivery Impact">
-              <textarea name="deliveryImpact" value={formData.deliveryImpact} onChange={handleChange} rows="2" />
-            </FormField>
-
-            <FormField label="Client Impact">
-              <textarea name="clientImpact" value={formData.clientImpact} onChange={handleChange} rows="2" />
-            </FormField>
-
-            <FormField label="Commercial Impact">
-              <textarea name="commercialImpact" value={formData.commercialImpact} onChange={handleChange} rows="2" />
-            </FormField>
-          </div>
-
-          <FormField label="People/Teams Affected">
-            <input name="peopleAffected" value={formData.peopleAffected} onChange={handleChange} />
-          </FormField>
-
-          <FormField label="Possible Root Cause">
-            <textarea 
-              name="rootCause" 
-              value={formData.rootCause} 
-              onChange={handleChange}
-              rows="2"
-              placeholder="Why does this happen?"
-            />
-          </FormField>
-
-          <FormField label="Improvement Suggestion">
-            <textarea 
-              name="improvementSuggestion" 
-              value={formData.improvementSuggestion} 
-              onChange={handleChange}
-              rows="2"
-              placeholder="What could be done differently?"
-            />
-          </FormField>
-
-          <FormField label="Next Validation Step">
-            <textarea 
-              name="nextValidationStep" 
-              value={formData.nextValidationStep} 
-              onChange={handleChange}
-              rows="2"
-            />
-          </FormField>
-
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-            <button type="submit" className="btn-primary">Save Observation</button>
-          </div>
-        </form>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        {['All', 'Validating', 'Accepted', 'Implemented'].map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: filter === f ? '#00b9fb' : '#1e2a3d',
+              color: filter === f ? '#0b0f19' : '#94a3b8',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 500,
+              fontSize: '0.875rem'
+            }}
+          >
+            {f}
+          </button>
+        ))}
       </div>
-    </div>
-  )
-}
 
-function FormField({ label, required, children }) {
-  return (
-    <div className="form-field">
-      <label>{label} {required && <span className="required">*</span>}</label>
-      {children}
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        {filteredObs.map(obs => (
+          <div key={obs.id} style={{ 
+            backgroundColor: '#151f32', 
+            border: '1px solid #1f2d47', 
+            borderRadius: '8px', 
+            padding: '1.5rem' 
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#ffffff', fontSize: '1.1rem', marginBottom: '0.5rem' }}>{obs.title}</h3>
+                <p style={{ color: '#94a3b8', fontSize: '0.95rem', margin: 0 }}>{obs.observation}</p>
+              </div>
+              <span style={{ 
+                padding: '0.25rem 0.75rem', 
+                borderRadius: '4px', 
+                fontSize: '0.75rem', 
+                fontWeight: 600,
+                backgroundColor: getStatusColor(obs.status),
+                color: '#fff'
+              }}>
+                {obs.status}
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+              <div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Project</div>
+                <div style={{ color: '#ffffff', fontSize: '0.95rem' }}>{obs.project}</div>
+              </div>
+              <div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Date</div>
+                <div style={{ color: '#ffffff', fontSize: '0.95rem' }}>{new Date(obs.date).toLocaleDateString('en-GB')}</div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Evidence</div>
+              <p style={{ color: '#94a3b8', fontSize: '0.95rem', margin: 0 }}>{obs.evidence}</p>
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Impact</div>
+              <p style={{ color: '#ffffff', fontSize: '0.95rem', margin: 0 }}>{obs.impact}</p>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ 
+                padding: '0.25rem 0.5rem', 
+                borderRadius: '4px', 
+                fontSize: '0.75rem', 
+                fontWeight: 600,
+                backgroundColor: obs.priority === 'High' ? '#ef4444' : obs.priority === 'Medium' ? '#f59e0b' : '#10b981',
+                color: '#fff'
+              }}>
+                {obs.priority} Priority
+              </span>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Action</div>
+                <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: 0, maxWidth: '300px' }}>{obs.action}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

@@ -1,275 +1,196 @@
-import { useState, useEffect } from 'react'
-import { Download, Calendar, CheckCircle2 } from 'lucide-react'
+import { useState } from 'react'
 
-const REFLECTION_SECTIONS = [
-  { key: 'delivery', title: 'Delivery', questions: [
-    'What moved forward this week?',
-    'What became blocked?',
-    'Which risks need attention?',
-    'Where did I prevent a problem from escalating?',
-    'What deadline or milestone needs attention next week?'
-  ]},
-  { key: 'clients', title: 'Clients', questions: [
-    'Which clients feel confident?',
-    'Which clients may need more communication?',
-    'Are there any unspoken concerns?',
-    'Have I made next steps clear?',
-    'Did I manage expectations effectively?'
-  ]},
-  { key: 'team', title: 'Team', questions: [
-    'Who did I help?',
-    'Who helped me?',
-    'Is anyone blocked because of missing information or decisions?',
-    'Where could I provide better support?',
-    'Is there any role or ownership confusion?'
-  ]},
-  { key: 'commercial', title: 'Commercial', questions: [
-    'Did scope, timeline or resourcing affect profitability?',
-    'Did I identify any over-servicing?',
-    'Did I protect the client\'s most valuable outcomes?',
-    'Did I challenge work that was not commercially justified?',
-    'Is there any change request or commercial discussion needed?'
-  ]},
-  { key: 'improvement', title: 'Improvement', questions: [
-    'What repeated this week?',
-    'What caused unnecessary friction?',
-    'What could be clearer?',
-    'What should I continue observing?',
-    'Is there evidence of a wider process issue?'
-  ]},
-  { key: 'personal', title: 'Personal Development', questions: [
-    'What did I learn?',
-    'Where did I lack confidence?',
-    'What should I understand better?',
-    'What is one thing I will do differently?',
-    'What technical or leadership skill should I focus on next?'
-  ]}
+const reflections = [
+  {
+    id: 1,
+    week: 'Week 30 (July 21-25, 2026)',
+    date: '2026-07-21',
+    whatWentWell: [
+      'SOUL CAP UAT completed successfully with client sign-off',
+      'Renais checkout redesign delivered on time',
+      'Team communication improved after implementing daily standups'
+    ],
+    challenges: [
+      'Design handoff delays impacted Lunn's Jewellers timeline',
+      'API rate limit concerns for Planet X need monitoring',
+      'Client scope creep on Renais post-launch requests'
+    ],
+    learnings: [
+      'Earlier client alignment prevents scope creep - implement sign-off gates',
+      'Daily standups improved team visibility and reduced blockers',
+      'Monitoring tools catching issues early saves launch time'
+    ],
+    nextWeekFocus: [
+      'Complete SOUL CAP final launch checks',
+      'Finalize Planet X requirements with product owner',
+      'Address team capacity constraints for next sprint'
+    ],
+    mood: 7,
+    energy: 6,
+    notes: 'Good week overall. SOUL CAP launch prep is the priority. Need to stay focused on what matters most.'
+  },
+  {
+    id: 2,
+    week: 'Week 29 (July 14-18, 2026)',
+    date: '2026-07-18',
+    whatWentWell: [
+      'Renais development phase completed ahead of schedule',
+      'Successfully managed client expectations on timeline',
+      'Team morale improved after addressing concerns'
+    ],
+    challenges: [
+      'Two team members on leave created capacity issues',
+      'Third-party integration bug caused 2-day delay',
+      'Multiple project priorities competing for attention'
+    ],
+    learnings: [
+      'Cross-training team members reduces single points of failure',
+      'Buffer time in timelines helps absorb unexpected delays',
+      'Clear prioritization framework prevents context switching'
+    ],
+    nextWeekFocus: [
+      'Complete UAT for SOUL CAP',
+      'Resolve third-party integration issues',
+      'Finalize design assets for Arighi Bianchi'
+    ],
+    mood: 6,
+    energy: 5,
+    notes: 'Busy week with multiple moving parts. Need to ensure SOUL CAP gets the attention it deserves.'
+  },
+  {
+    id: 3,
+    week: 'Week 28 (July 7-11, 2026)',
+    date: '2026-07-14',
+    whatWentWell: [
+      'Planet X requirements gathering completed',
+      'Client feedback incorporated quickly on Renais',
+      'Implemented new monitoring alerts for API usage'
+    ],
+    challenges: [
+      'Designer availability impacted design phase timeline',
+      'Competitor launched similar feature - need to reassess roadmap',
+      'Team capacity constraints with upcoming leave'
+    ],
+    learnings: [
+      'Competitive awareness should be built into quarterly planning',
+      'Client feedback loops work best when structured and time-boxed',
+      'Proactive resource planning prevents last-minute crunches'
+    ],
+    nextWeekFocus: [
+      'Address team capacity planning',
+      'Schedule competitive analysis discussion',
+      'Complete design review for Lunn's Jewellers'
+    ],
+    mood: 6,
+    energy: 6,
+    notes: 'Steady progress across projects. Competitive landscape shifting - need to stay agile.'
+  }
 ]
 
 function WeeklyReflection() {
-  const [reflections, setReflections] = useState([])
-  const [currentWeek, setCurrentWeek] = useState(generateWeekKey(new Date()))
-  const [formData, setFormData] = useState({})
-  const [showHistory, setShowHistory] = useState(false)
-
-  useEffect(() => {
-    const saved = localStorage.getItem('pm-dashboard-data')
-    if (saved) {
-      try {
-        const data = JSON.parse(saved)
-        setReflections(data.weeklyReflections || [])
-      } catch (e) {
-        console.error('Failed to load reflections:', e)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    const existing = reflections.find(r => r.weekKey === currentWeek)
-    if (existing) {
-      setFormData(existing.data)
-    } else {
-      setFormData({})
-    }
-  }, [currentWeek, reflections])
-
-  const saveData = (updatedReflections) => {
-    const saved = localStorage.getItem('pm-dashboard-data') || '{}'
-    const data = JSON.parse(saved)
-    data.weeklyReflections = updatedReflections
-    localStorage.setItem('pm-dashboard-data', JSON.stringify(data))
-  }
-
-  const handleSave = () => {
-    const updated = reflections.filter(r => r.weekKey !== currentWeek)
-    updated.push({
-      weekKey: currentWeek,
-      weekLabel: getWeekLabel(currentWeek),
-      data: formData,
-      completed: true,
-      savedAt: new Date().toISOString()
-    })
-
-    saveData(updated)
-    setReflections(updated)
-  }
-
-  const handleExport = () => {
-    const weekData = reflections.find(r => r.weekKey === currentWeek)
-    if (!weekData) return alert('No reflection to export')
-
-    let markdown = `# Weekly Reflection - ${weekData.weekLabel}\n\n`
-    
-    REFLECTION_SECTIONS.forEach(section => {
-      markdown += `## ${section.title}\n\n`
-      section.questions.forEach(q => {
-        const answer = weekData.data[section.key]?.[q] || ''
-        markdown += `**${q}**\n${answer}\n\n`
-      })
-    })
-
-    if (weekData.data.summary) {
-      markdown += `## Summary\n\n`
-      markdown += `**Strongest Win:** ${weekData.data.summary.strongestWin || ''}\n`
-      markdown += `**Biggest Concern:** ${weekData.data.summary.biggestConcern || ''}\n`
-      markdown += `**Most Important Lesson:** ${weekData.data.summary.mostImportantLesson || ''}\n\n`
-    }
-
-    downloadFile(`${weekData.weekLabel.replace(/\s+/g, '-')}-reflection.md`, markdown)
-  }
+  const [selectedWeek, setSelectedWeek] = useState(reflections[0])
 
   return (
-    <div className="view-container">
-      <div className="page-header">
-        <h2>Weekly Reflection</h2>
-        <p className="subtitle">Structured weekly review and learning</p>
-      </div>
-
-      <div className="week-selector">
-        <button onClick={() => setShowHistory(!showHistory)}>
-          <Calendar size={18} />
-          {showHistory ? 'Hide History' : 'View History'}
-        </button>
-        
-        {!showHistory && (
-          <>
-            <input 
-              type="date" 
-              value={currentWeek}
-              onChange={(e) => setCurrentWeek(e.target.value)}
-            />
-            <button onClick={handleSave} className="btn-primary">
-              <CheckCircle2 size={18} />
-              Save Reflection
-            </button>
-            <button onClick={handleExport} className="btn-secondary">
-              <Download size={18} />
-              Export Markdown
-            </button>
-          </>
-        )}
-      </div>
-
-      {showHistory && (
-        <div className="history-list">
-          <h3>Past Reflections</h3>
-          {reflections.length === 0 ? (
-            <p>No reflections yet. Complete your first weekly reflection.</p>
-          ) : (
-            <ul>
-              {reflections.map(r => (
-                <li key={r.weekKey} className={`history-item ${r.weekKey === currentWeek ? 'active' : ''}`}>
-                  <span>{r.weekLabel}</span>
-                  <span className="date">{new Date(r.savedAt).toLocaleDateString('en-GB')}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {!showHistory && (
-        <div className="reflection-form">
-          {REFLECTION_SECTIONS.map(section => (
-            <div key={section.key} className="reflection-section">
-              <h3>{section.title}</h3>
-              {section.questions.map((q, i) => (
-                <div key={i} className="question-group">
-                  <label>{q}</label>
-                  <textarea
-                    value={formData[section.key]?.[q] || ''}
-                    onChange={(e) => {
-                      setFormData(prev => ({
-                        ...prev,
-                        [section.key]: {
-                          ...(prev[section.key] || {}),
-                          [q]: e.target.value
-                        }
-                      }))
-                    }}
-                    rows="2"
-                  />
-                </div>
-              ))}
-            </div>
+    <div>
+      <h2 style={{ marginBottom: '1.5rem', fontSize: '1.75rem' }}>Weekly Reflection</h2>
+      
+      <div style={{ marginBottom: '1.5rem' }}>
+        <label style={{ color: '#94a3b8', fontSize: '0.875rem', display: 'block', marginBottom: '0.5rem' }}>Select Week</label>
+        <select 
+          value={selectedWeek.id}
+          onChange={(e) => setSelectedWeek(reflections.find(r => r.id === parseInt(e.target.value)))}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            backgroundColor: '#1e2a3d',
+            border: '1px solid #1f2d47',
+            borderRadius: '6px',
+            color: '#ffffff',
+            fontSize: '0.95rem'
+          }}
+        >
+          {reflections.map(r => (
+            <option key={r.id} value={r.id}>{r.week}</option>
           ))}
+        </select>
+      </div>
 
-          <div className="reflection-section">
-            <h3>Summary</h3>
-            <div className="summary-grid">
-              <FormField label="Strongest Win">
-                <input 
-                  value={formData.summary?.strongestWin || ''}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    summary: { ...(prev.summary || {}), strongestWin: e.target.value }
-                  }))}
-                />
-              </FormField>
+      <div style={{ display: 'grid', gap: '1.5rem' }}>
+        <div style={{ backgroundColor: '#151f32', border: '1px solid #1f2d47', borderRadius: '8px', padding: '1.5rem' }}>
+          <h3 style={{ color: '#00b9fb', marginBottom: '1rem', fontSize: '1.1rem' }}>What Went Well</h3>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {selectedWeek.whatWentWell.map((item, i) => (
+              <li key={i} style={{ padding: '0.5rem 0', borderBottom: i < selectedWeek.whatWentWell.length - 1 ? '1px solid #1f2d47' : 'none', color: '#94a3b8' }}>
+                ✅ {item}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-              <FormField label="Biggest Concern">
-                <input 
-                  value={formData.summary?.biggestConcern || ''}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    summary: { ...(prev.summary || {}), biggestConcern: e.target.value }
-                  }))}
-                />
-              </FormField>
+        <div style={{ backgroundColor: '#151f32', border: '1px solid #1f2d47', borderRadius: '8px', padding: '1.5rem' }}>
+          <h3 style={{ color: '#f59e0b', marginBottom: '1rem', fontSize: '1.1rem' }}>Challenges</h3>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {selectedWeek.challenges.map((item, i) => (
+              <li key={i} style={{ padding: '0.5rem 0', borderBottom: i < selectedWeek.challenges.length - 1 ? '1px solid #1f2d47' : 'none', color: '#94a3b8' }}>
+                ⚠️ {item}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-              <FormField label="Most Important Lesson">
-                <input 
-                  value={formData.summary?.mostImportantLesson || ''}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    summary: { ...(prev.summary || {}), mostImportantLesson: e.target.value }
-                  }))}
-                />
-              </FormField>
+        <div style={{ backgroundColor: '#151f32', border: '1px solid #1f2d47', borderRadius: '8px', padding: '1.5rem' }}>
+          <h3 style={{ color: '#10b981', marginBottom: '1rem', fontSize: '1.1rem' }}>Learnings</h3>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {selectedWeek.learnings.map((item, i) => (
+              <li key={i} style={{ padding: '0.5rem 0', borderBottom: i < selectedWeek.learnings.length - 1 ? '1px solid #1f2d47' : 'none', color: '#94a3b8' }}>
+                💡 {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div style={{ backgroundColor: '#151f32', border: '1px solid #1f2d47', borderRadius: '8px', padding: '1.5rem' }}>
+          <h3 style={{ color: '#ef4444', marginBottom: '1rem', fontSize: '1.1rem' }}>Next Week Focus</h3>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {selectedWeek.nextWeekFocus.map((item, i) => (
+              <li key={i} style={{ padding: '0.5rem 0', borderBottom: i < selectedWeek.nextWeekFocus.length - 1 ? '1px solid #1f2d47' : 'none', color: '#94a3b8' }}>
+                🎯 {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div style={{ backgroundColor: '#151f32', border: '1px solid #1f2d47', borderRadius: '8px', padding: '1.5rem' }}>
+          <h3 style={{ color: '#ffffff', marginBottom: '1rem', fontSize: '1.1rem' }}>Weekly Mood & Energy</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+            <div>
+              <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.5rem' }}>Mood (1-10)</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ flex: 1, backgroundColor: '#1e2a3d', borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
+                  <div style={{ backgroundColor: selectedWeek.mood >= 7 ? '#10b981' : selectedWeek.mood >= 5 ? '#f59e0b' : '#ef4444', height: '100%', width: `${selectedWeek.mood * 10}%` }} />
+                </div>
+                <span style={{ color: '#ffffff', fontWeight: 600 }}>{selectedWeek.mood}/10</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.5rem' }}>Energy (1-10)</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ flex: 1, backgroundColor: '#1e2a3d', borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
+                  <div style={{ backgroundColor: selectedWeek.energy >= 7 ? '#10b981' : selectedWeek.energy >= 5 ? '#f59e0b' : '#ef4444', height: '100%', width: `${selectedWeek.energy * 10}%` }} />
+                </div>
+                <span style={{ color: '#ffffff', fontWeight: 600 }}>{selectedWeek.energy}/10</span>
+              </div>
             </div>
           </div>
         </div>
-      )}
+
+        <div style={{ backgroundColor: '#151f32', border: '1px solid #1f2d47', borderRadius: '8px', padding: '1.5rem' }}>
+          <h3 style={{ color: '#ffffff', marginBottom: '1rem', fontSize: '1.1rem' }}>Notes</h3>
+          <p style={{ color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>{selectedWeek.notes}</p>
+        </div>
+      </div>
     </div>
   )
-}
-
-function FormField({ label, children }) {
-  return (
-    <div className="form-field">
-      <label>{label}</label>
-      {children}
-    </div>
-  )
-}
-
-function generateWeekKey(date) {
-  const d = new Date(date)
-  const day = d.getDate()
-  const month = d.getMonth() + 1
-  const year = d.getFullYear()
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-}
-
-function getWeekLabel(weekKey) {
-  const [year, month, day] = weekKey.split('-').map(Number)
-  const date = new Date(year, month - 1, day)
-  return date.toLocaleDateString('en-GB', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
-}
-
-function downloadFile(filename, content) {
-  const blob = new Blob([content], { type: 'text/markdown' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
 }
 
 export default WeeklyReflection

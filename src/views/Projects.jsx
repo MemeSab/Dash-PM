@@ -1,282 +1,145 @@
-import { useState, useEffect } from 'react'
-import { Plus, Edit3, Trash2, Search, Filter, ExternalLink } from 'lucide-react'
+import { useState } from 'react'
 
-const PROJECT_TYPES = ['New build', 'Replatform', 'Retainer', 'Discovery', 'Optimisation', 'Integration', 'Support', 'Internal', 'Other']
-const PHASES = ['Discovery', 'Definition', 'Design', 'Development', 'QA', 'UAT', 'Pre-launch', 'Launch', 'Hypercare', 'Retainer', 'Paused', 'Complete']
-const RAG_STATUSES = ['Green', 'Amber', 'Red', 'On hold', 'Complete']
+const projects = [
+  { id: 1, name: 'Renais', client: 'Renais', status: 'Active', phase: 'Development', priority: 'High', progress: 65, startDate: '2026-01-15', deadline: '2026-08-30' },
+  { id: 2, name: 'Planet X / On-One', client: 'Planet X', status: 'Active', phase: 'Planning', priority: 'Medium', progress: 40, startDate: '2026-03-01', deadline: '2026-10-15' },
+  { id: 3, name: "Lunn's Jewellers", client: "Lunn's Jewellers", status: 'Active', phase: 'Design', priority: 'High', progress: 75, startDate: '2026-02-10', deadline: '2026-07-31' },
+  { id: 4, name: 'SOUL CAP', client: 'SOUL CAP', status: 'Active', phase: 'Launch Prep', priority: 'High', progress: 90, startDate: '2025-11-01', deadline: '2026-07-25' },
+  { id: 5, name: 'The Fish Society', client: 'The Fish Society', status: 'Completed', phase: 'Live', priority: 'Medium', progress: 100, startDate: '2025-09-01', deadline: '2026-03-15' },
+  { id: 6, name: 'CarbonCo', client: 'CarbonCo', status: 'Active', phase: 'Discovery', priority: 'Low', progress: 20, startDate: '2026-04-01', deadline: '2026-12-01' },
+  { id: 7, name: 'Arighi Bianchi', client: 'Arighi Bianchi', status: 'Active', phase: 'Development', priority: 'Medium', progress: 55, startDate: '2026-02-20', deadline: '2026-09-30' },
+  { id: 8, name: 'Buying Time Foundation', client: 'Buying Time Foundation', status: 'Active', phase: 'Planning', priority: 'Low', progress: 30, startDate: '2026-05-01', deadline: '2027-01-31' },
+  { id: 9, name: 'Mayekoo', client: 'Mayekoo', status: 'Active', phase: 'Design', priority: 'Medium', progress: 45, startDate: '2026-03-15', deadline: '2026-11-30' }
+]
+
+function getStatusColor(status) {
+  if (status === 'Active') return '#00b9fb'
+  if (status === 'Completed') return '#10b981'
+  if (status === 'On Hold') return '#f59e0b'
+  return '#64748b'
+}
+
+function getPriorityColor(priority) {
+  if (priority === 'High') return '#ef4444'
+  if (priority === 'Medium') return '#f59e0b'
+  return '#10b981'
+}
 
 function Projects() {
-  const [projects, setProjects] = useState([])
-  const [showModal, setShowModal] = useState(false)
-  const [editingProject, setEditingProject] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterRag, setFilterRag] = useState('All')
-  const [filterPhase, setFilterPhase] = useState('All')
+  const [filter, setFilter] = useState('All')
 
-  useEffect(() => {
-    const saved = localStorage.getItem('pm-dashboard-data')
-    if (saved) {
-      try {
-        const data = JSON.parse(saved)
-        setProjects(data.projects || [])
-      } catch (e) {
-        console.error('Failed to load projects:', e)
-      }
-    }
-  }, [])
-
-  const saveData = (updatedProjects) => {
-    const saved = localStorage.getItem('pm-dashboard-data') || '{}'
-    const data = JSON.parse(saved)
-    data.projects = updatedProjects
-    localStorage.setItem('pm-dashboard-data', JSON.stringify(data))
-  }
-
-  const filteredProjects = projects.filter(p => {
-    if (filterRag !== 'All' && p.ragStatus !== filterRag) return false
-    if (filterPhase !== 'All' && p.phase !== filterPhase) return false
-    if (searchTerm && !p.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !p.projectName?.toLowerCase().includes(searchTerm.toLowerCase())) return false
-    return true
-  })
-
-  const handleSave = (project) => {
-    const updated = editingProject ? 
-      projects.map(p => p.id === editingProject.id ? { ...project, id: editingProject.id, updatedAt: new Date().toISOString() } : p) :
-      [...projects, { ...project, id: Date.now().toString(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]
-    
-    saveData(updated)
-    setProjects(updated)
-    setShowModal(false)
-    setEditingProject(null)
-  }
-
-  const handleDelete = (id) => {
-    if (!confirm('Are you sure you want to delete this project?')) return
-    
-    const updated = projects.filter(p => p.id !== id)
-    saveData(updated)
-    setProjects(updated)
-  }
+  const filteredProjects = filter === 'All' 
+    ? projects 
+    : projects.filter(p => p.status === filter)
 
   return (
-    <div className="view-container">
-      <div className="page-header">
-        <h2>Projects & Client Health</h2>
-        <p className="subtitle">Track delivery, commercial health, and client confidence</p>
-      </div>
-
-      {/* Filters */}
-      <div className="filters-bar">
-        <div className="search-box">
-          <Search size={18} />
-          <input 
-            type="text" 
-            placeholder="Search projects..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <select value={filterRag} onChange={(e) => setFilterRag(e.target.value)}>
-          <option value="All">All RAG</option>
-          {RAG_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select value={filterPhase} onChange={(e) => setFilterPhase(e.target.value)}>
-          <option value="All">All Phases</option>
-          {PHASES.map(p => <option key={p} value={p}>{p}</option>)}
-        </select>
-        <button onClick={() => setShowModal(true)} className="btn-primary">
-          <Plus size={18} />
-          New Project
-        </button>
-      </div>
-
-      {/* Projects List */}
-      {filteredProjects.length === 0 ? (
-        <div className="empty-state">
-          <FolderKanban size={48} />
-          <h3>No projects added yet</h3>
-          <p>Add your first project when you're ready, or load optional demo data to explore the dashboard.</p>
-        </div>
-      ) : (
-        <div className="projects-grid">
-          {filteredProjects.map(project => (
-            <ProjectCard 
-              key={project.id} 
-              project={project}
-              onEdit={() => { setEditingProject(project); setShowModal(true) }}
-              onDelete={() => handleDelete(project.id)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Project Modal */}
-      {showModal && (
-        <ProjectModal 
-          project={editingProject}
-          onSave={handleSave}
-          onClose={() => { setShowModal(false); setEditingProject(null) }}
-        />
-      )}
-    </div>
-  )
-}
-
-function ProjectCard({ project, onEdit, onDelete }) {
-  const ragColors = {
-    Green: '#42c98b',
-    Amber: '#f4b860',
-    Red: '#ef6b73',
-    'On hold': '#718098',
-    Complete: '#5fa8ff'
-  }
-
-  return (
-    <div className="project-card">
-      <div className="project-header">
-        <span className={`rag-badge`} style={{ backgroundColor: ragColors[project.ragStatus] || '#718098' }}>
-          {project.ragStatus}
-        </span>
-        <div className="project-actions">
-          <button onClick={onEdit} className="btn-icon"><Edit3 size={16} /></button>
-          <button onClick={onDelete} className="btn-icon danger"><Trash2 size={16} /></button>
-        </div>
-      </div>
+    <div>
+      <h2 style={{ marginBottom: '1.5rem', fontSize: '1.75rem' }}>Projects</h2>
       
-      <h3>{project.projectName}</h3>
-      <p className="client-name">{project.clientName}</p>
-      
-      <div className="project-meta">
-        <span className="meta-item">
-          <FolderKanban size={14} />
-          {project.projectType}
-        </span>
-        <span className="meta-item">
-          <CalendarCheck size={14} />
-          {project.phase}
-        </span>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        {['All', 'Active', 'Completed'].map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: filter === f ? '#00b9fb' : '#1e2a3d',
+              color: filter === f ? '#0b0f19' : '#94a3b8',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 500,
+              fontSize: '0.875rem'
+            }}
+          >
+            {f}
+          </button>
+        ))}
       </div>
 
-      {project.progress !== undefined && (
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${project.progress}%` }}></div>
-        </div>
-      )}
-
-      <p className="next-action">{project.immediateNextAction || 'No next action set'}</p>
-    </div>
-  )
-}
-
-function ProjectModal({ project, onSave, onClose }) {
-  const [formData, setFormData] = useState(project || {
-    clientName: '',
-    projectName: '',
-    projectType: 'New build',
-    phase: 'Discovery',
-    ragStatus: 'Green',
-    progress: 0,
-    immediateNextAction: '',
-    nextMilestone: '',
-    nextMilestoneDate: '',
-    keyRisks: '',
-    notes: ''
-  })
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>{project ? 'Edit Project' : 'New Project'}</h2>
-        
-        <form onSubmit={(e) => { e.preventDefault(); onSave(formData) }}>
-          <div className="form-grid">
-            <FormField label="Client Name" required>
-              <input name="clientName" value={formData.clientName} onChange={handleChange} required />
-            </FormField>
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        {filteredProjects.map(project => (
+          <div key={project.id} style={{ 
+            backgroundColor: '#151f32', 
+            border: '1px solid #1f2d47', 
+            borderRadius: '8px', 
+            padding: '1.5rem' 
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0, color: '#ffffff', fontSize: '1.1rem' }}>{project.name}</h3>
+              <span style={{ 
+                padding: '0.25rem 0.75rem', 
+                borderRadius: '4px', 
+                fontSize: '0.75rem', 
+                fontWeight: 600,
+                backgroundColor: getStatusColor(project.status),
+                color: project.status === 'Active' ? '#0b0f19' : '#fff'
+              }}>
+                {project.status}
+              </span>
+            </div>
             
-            <FormField label="Project Name" required>
-              <input name="projectName" value={formData.projectName} onChange={handleChange} required />
-            </FormField>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Client</div>
+                <div style={{ color: '#ffffff', fontSize: '0.95rem' }}>{project.client}</div>
+              </div>
+              <div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Phase</div>
+                <div style={{ color: '#ffffff', fontSize: '0.95rem' }}>{project.phase}</div>
+              </div>
+              <div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Start Date</div>
+                <div style={{ color: '#ffffff', fontSize: '0.95rem' }}>{new Date(project.startDate).toLocaleDateString('en-GB')}</div>
+              </div>
+              <div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Deadline</div>
+                <div style={{ color: '#ffffff', fontSize: '0.95rem' }}>{new Date(project.deadline).toLocaleDateString('en-GB')}</div>
+              </div>
+            </div>
 
-            <FormField label="Project Type">
-              <select name="projectType" value={formData.projectType} onChange={handleChange}>
-                {PROJECT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </FormField>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Progress</span>
+                <span style={{ color: '#ffffff', fontSize: '0.875rem', fontWeight: 600 }}>{project.progress}%</span>
+              </div>
+              <div style={{ backgroundColor: '#1e2a3d', borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
+                <div style={{ 
+                  backgroundColor: project.progress === 100 ? '#10b981' : '#00b9fb',
+                  height: '100%',
+                  width: `${project.progress}%`,
+                  borderRadius: '4px',
+                  transition: 'width 0.3s ease'
+                }} />
+              </div>
+            </div>
 
-            <FormField label="Phase">
-              <select name="phase" value={formData.phase} onChange={handleChange}>
-                {PHASES.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </FormField>
-
-            <FormField label="RAG Status">
-              <select name="ragStatus" value={formData.ragStatus} onChange={handleChange}>
-                {RAG_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </FormField>
-
-            <FormField label="Progress (%)">
-              <input type="number" name="progress" min="0" max="100" value={formData.progress} onChange={handleChange} />
-            </FormField>
-
-            <FormField label="Next Milestone">
-              <input name="nextMilestone" value={formData.nextMilestone} onChange={handleChange} />
-            </FormField>
-
-            <FormField label="Next Milestone Date">
-              <input type="date" name="nextMilestoneDate" value={formData.nextMilestoneDate} onChange={handleChange} />
-            </FormField>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ 
+                padding: '0.25rem 0.5rem', 
+                borderRadius: '4px', 
+                fontSize: '0.75rem', 
+                fontWeight: 600,
+                backgroundColor: getPriorityColor(project.priority),
+                color: '#fff'
+              }}>
+                {project.priority} Priority
+              </span>
+              <button style={{ 
+                padding: '0.5rem 1rem', 
+                backgroundColor: 'transparent', 
+                color: '#00b9fb', 
+                border: '1px solid #00b9fb', 
+                borderRadius: '6px', 
+                cursor: 'pointer',
+                fontSize: '0.875rem'
+              }}>
+                View Details
+              </button>
+            </div>
           </div>
-
-          <FormField label="Immediate Next Action">
-            <textarea 
-              name="immediateNextAction" 
-              value={formData.immediateNextAction} 
-              onChange={handleChange}
-              rows="2"
-            />
-          </FormField>
-
-          <FormField label="Key Risks">
-            <textarea 
-              name="keyRisks" 
-              value={formData.keyRisks} 
-              onChange={handleChange}
-              rows="3"
-            />
-          </FormField>
-
-          <FormField label="Notes">
-            <textarea 
-              name="notes" 
-              value={formData.notes} 
-              onChange={handleChange}
-              rows="3"
-            />
-          </FormField>
-
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-            <button type="submit" className="btn-primary">Save Project</button>
-          </div>
-        </form>
+        ))}
       </div>
-    </div>
-  )
-}
-
-function FormField({ label, required, children }) {
-  return (
-    <div className="form-field">
-      <label>{label} {required && <span className="required">*</span>}</label>
-      {children}
     </div>
   )
 }
