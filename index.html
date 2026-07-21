@@ -1,13 +1,275 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>blubolt-dashboard-v2</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PM Dashboard - Sample Data</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: system-ui, -apple-system, sans-serif; 
+      background-color: #0b0f19; 
+      color: #ffffff;
+      min-height: 100vh;
+    }
+    .app { display: flex; flex-direction: column; min-height: 100vh; }
+    header { 
+      padding: 2rem; 
+      background-color: #151f32; 
+      border-bottom: 1px solid #1f2d47;
+    }
+    header h1 { margin: 0 0 0.5rem 0; font-size: 1.75rem; }
+    header p { color: #94a3b8; font-size: 0.875rem; }
+    
+    .main-layout { display: flex; flex: 1; }
+    
+    nav { 
+      width: 260px; 
+      background-color: #151f32;
+      border-right: 1px solid #1f2d47;
+      padding: 1.5rem 0;
+    }
+    nav ul { list-style: none; }
+    nav li { 
+      padding: 0.75rem 1.5rem; 
+      color: #94a3b8; 
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    nav li:hover { background-color: #1e2a3d; color: #ffffff; }
+    nav li.active { background-color: #1e2a3d; color: #00b9fb; border-right: 3px solid #00b9fb; }
+    
+    main { flex: 1; padding: 2rem; background-color: #0b0f19; }
+    main h2 { margin-bottom: 1rem; color: #ffffff; }
+    main p { color: #94a3b8; line-height: 1.6; }
+    
+    .stats-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 1.5rem; 
+      margin-bottom: 2rem;
+    }
+    .stat-card { 
+      background-color: #151f32; 
+      border: 1px solid #1f2d47; 
+      border-radius: 8px; 
+      padding: 1.5rem;
+    }
+    .stat-card h3 { color: #00b9fb; font-size: 2rem; margin-bottom: 0.25rem; }
+    .stat-card p { color: #94a3b8; font-size: 0.875rem; }
+    
+    .card { 
+      background-color: #151f32; 
+      border: 1px solid #1f2d47; 
+      border-radius: 8px; 
+      padding: 1.5rem; 
+      margin-bottom: 1.5rem;
+    }
+    .card h3 { color: #ffffff; margin-bottom: 1rem; }
+    
+    .btn-primary { 
+      background-color: #00b9fb; 
+      color: #0b0f19; 
+      border: none; 
+      padding: 0.5rem 1rem; 
+      border-radius: 6px; 
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn-primary:hover { background-color: #0090c5; }
+    
+    .activity-list { list-style: none; }
+    .activity-item { 
+      padding: 1rem 0; 
+      border-bottom: 1px solid #1f2d47;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { 
+      width: 40px; 
+      height: 40px; 
+      background-color: #1e2a3d; 
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    .activity-content { flex: 1; }
+    .activity-title { color: #ffffff; margin-bottom: 0.25rem; }
+    .activity-meta { color: #64748b; font-size: 0.875rem; }
+    
+    .tag { 
+      display: inline-block; 
+      padding: 0.25rem 0.5rem; 
+      border-radius: 4px; 
+      font-size: 0.75rem; 
+      font-weight: 600;
+    }
+    .tag-red { background-color: #ef4444; color: white; }
+    .tag-amber { background-color: #f59e0b; color: black; }
+    .tag-green { background-color: #10b981; color: white; }
+    .tag-blue { background-color: #00b9fb; color: black; }
+    
+    .milestone-list { list-style: none; }
+    .milestone-item { 
+      padding: 0.75rem 0; 
+      border-bottom: 1px solid #1f2d47;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .milestone-item:last-child { border-bottom: none; }
+    .milestone-check { 
+      width: 20px; 
+      height: 20px; 
+      border: 2px solid #64748b; 
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .milestone-check.completed { background-color: #10b981; border-color: #10b981; }
+    .milestone-text { color: #94a3b8; }
+    .milestone-text.completed { text-decoration: line-through; opacity: 0.6; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>PM Dashboard</h1>
+      <p id="date-display"></p>
+    </header>
+    
+    <div class="main-layout">
+      <nav>
+        <ul>
+          <li class="active">Overview</li>
+          <li>Projects</li>
+          <li>RAID Log</li>
+          <li>Opportunity Journal</li>
+          <li>Weekly Reflection</li>
+          <li>Monthly Review</li>
+          <li>Objectives & Feedback</li>
+          <li>Evidence & Achievements</li>
+          <li>Learning & Development</li>
+          <li>Prompts & Resources</li>
+          <li>Settings & Backup</li>
+        </ul>
+      </nav>
+      
+      <main>
+        <h2>Overview</h2>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>6/10</h3>
+            <p>Milestones Complete</p>
+          </div>
+          <div class="stat-card">
+            <h3>2</h3>
+            <p>Active Risks</p>
+          </div>
+          <div class="stat-card">
+            <h3>0</h3>
+            <p>Overdue Actions</p>
+          </div>
+          <div class="stat-card">
+            <h3>4</h3>
+            <p>Observations Logged</p>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3>Quick Actions</h3>
+          <button class="btn-primary">Add Project</button>
+          <button class="btn-primary" style="margin-left: 0.5rem;">Log Risk</button>
+          <button class="btn-primary" style="margin-left: 0.5rem;">Record Observation</button>
+          <button class="btn-primary" style="margin-left: 0.5rem;">Weekly Reflection</button>
+        </div>
+        
+        <div class="card">
+          <h3>Recent Activity</h3>
+          <ul class="activity-list">
+            <li class="activity-item">
+              <div class="activity-icon">📋</div>
+              <div class="activity-content">
+                <div class="activity-title">Checkout redesign completed</div>
+                <div class="activity-meta">Renais - 2 days ago</div>
+              </div>
+              <span class="tag tag-green">Completed</span>
+            </li>
+            <li class="activity-item">
+              <div class="activity-icon">⚠️</div>
+              <div class="activity-content">
+                <div class="activity-title">API rate limit risk identified</div>
+                <div class="activity-meta">Planet X - 3 days ago</div>
+              </div>
+              <span class="tag tag-amber">Mitigating</span>
+            </li>
+            <li class="activity-item">
+              <div class="activity-icon">📝</div>
+              <div class="activity-content">
+                <div class="activity-title">Design handoff delayed by 2 days</div>
+                <div class="activity-meta">Lunn's Jewellers - 5 days ago</div>
+              </div>
+              <span class="tag tag-red">Issue</span>
+            </li>
+            <li class="activity-item">
+              <div class="activity-icon">💡</div>
+              <div class="activity-content">
+                <div class="activity-title">Team morale observation noted</div>
+                <div class="activity-meta">SOUL CAP - 1 week ago</div>
+              </div>
+              <span class="tag tag-blue">Observation</span>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="card">
+          <h3>North Star</h3>
+          <p style="font-size: 1.1rem; font-style: italic; color: #ffffff; margin-bottom: 0.5rem;">"Launch under pressure requires structure, not heroics."</p>
+          <p style="color: #94a3b8; font-size: 0.95rem;">Focus on what matters most. Deliver the right things well.</p>
+        </div>
+        
+        <div class="card">
+          <h3>Key Milestones</h3>
+          <ul class="milestone-list">
+            <li class="milestone-item">
+              <div class="milestone-check completed">✓</div>
+              <span class="milestone-text completed">Discovery phase complete</span>
+            </li>
+            <li class="milestone-item">
+              <div class="milestone-check completed">✓</div>
+              <span class="milestone-text completed">Requirements signed off</span>
+            </li>
+            <li class="milestone-item">
+              <div class="milestone-check completed">✓</div>
+              <span class="milestone-text completed">Design approved</span>
+            </li>
+            <li class="milestone-item">
+              <div class="milestone-check"></div>
+              <span class="milestone-text">Development complete</span>
+            </li>
+            <li class="milestone-item">
+              <div class="milestone-check"></div>
+              <span class="milestone-text">QA testing passed</span>
+            </li>
+          </ul>
+        </div>
+      </main>
+    </div>
+  </div>
+  
+  <script>
+    document.getElementById('date-display').textContent = new Date().toLocaleDateString('en-GB', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  </script>
+</body>
 </html>
