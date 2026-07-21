@@ -59,31 +59,28 @@ function App() {
         <p style={{ color: '#94a3b8', margin: '0.25rem 0 0 0', fontSize: '0.875rem' }}>{today}</p>
       </header>
 
-      <nav style={{ backgroundColor: '#151f32', borderBottom: '1px solid #1f2d47', overflowX: 'auto', padding: '0.5rem 1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', minWidth: 'max-content' }}>
+      <div style={{ backgroundColor: '#151f32', borderBottom: '1px solid #1f2d47', padding: '1rem' }}>
+        <select 
+          value={activeView}
+          onChange={(e) => setActiveView(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            backgroundColor: '#1e2a3d',
+            border: '1px solid #1f2d47',
+            borderRadius: '6px',
+            color: '#ffffff',
+            fontSize: '1rem',
+            cursor: 'pointer'
+          }}
+        >
           {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveView(item.id)}
-              style={{
-                padding: '0.75rem 1rem',
-                backgroundColor: activeView === item.id ? '#00b9fb' : '#1e2a3d',
-                color: activeView === item.id ? '#0b0f19' : '#94a3b8',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: activeView === item.id ? 600 : 400,
-                whiteSpace: 'nowrap',
-                touchAction: 'manipulation',
-                WebkitTapHighlightColor: 'transparent'
-              }}
-            >
+            <option key={item.id} value={item.id} style={{ backgroundColor: '#1e2a3d' }}>
               {item.label}
-            </button>
+            </option>
           ))}
-        </div>
-      </nav>
+        </select>
+      </div>
 
       <main style={{ padding: '1.5rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
         <Suspense fallback={<div style={{ color: '#94a3b8' }}>Loading...</div>}>
