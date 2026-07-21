@@ -3,87 +3,87 @@ import { useState } from 'react'
 const reflections = [
   {
     id: 1,
-    week: 'Week 30 (July 21-25, 2026)',
-    date: '2026-07-21',
+    week: "Week 30 (July 21-25, 2026)",
+    date: "2026-07-21",
     whatWentWell: [
-      'SOUL CAP UAT completed successfully with client sign-off',
-      'Renais checkout redesign delivered on time',
-      'Team communication improved after implementing daily standups'
+      "SOUL CAP UAT completed successfully with client sign-off",
+      "Renais checkout redesign delivered on time",
+      "Team communication improved after implementing daily standups"
     ],
     challenges: [
-      'Design handoff delays impacted Lunn's Jewellers timeline',
-      'API rate limit concerns for Planet X need monitoring',
-      'Client scope creep on Renais post-launch requests'
+      "Design handoff delays impacted Lunn's Jewellers timeline",
+      "API rate limit concerns for Planet X need monitoring",
+      "Client scope creep on Renais post-launch requests"
     ],
     learnings: [
-      'Earlier client alignment prevents scope creep - implement sign-off gates',
-      'Daily standups improved team visibility and reduced blockers',
-      'Monitoring tools catching issues early saves launch time'
+      "Earlier client alignment prevents scope creep - implement sign-off gates",
+      "Daily standups improved team visibility and reduced blockers",
+      "Monitoring tools catching issues early saves launch time"
     ],
     nextWeekFocus: [
-      'Complete SOUL CAP final launch checks',
-      'Finalize Planet X requirements with product owner',
-      'Address team capacity constraints for next sprint'
+      "Complete SOUL CAP final launch checks",
+      "Finalize Planet X requirements with product owner",
+      "Address team capacity constraints for next sprint"
     ],
     mood: 7,
     energy: 6,
-    notes: 'Good week overall. SOUL CAP launch prep is the priority. Need to stay focused on what matters most.'
+    notes: "Good week overall. SOUL CAP launch prep is the priority. Need to stay focused on what matters most."
   },
   {
     id: 2,
-    week: 'Week 29 (July 14-18, 2026)',
-    date: '2026-07-18',
+    week: "Week 29 (July 14-18, 2026)",
+    date: "2026-07-18",
     whatWentWell: [
-      'Renais development phase completed ahead of schedule',
-      'Successfully managed client expectations on timeline',
-      'Team morale improved after addressing concerns'
+      "Renais development phase completed ahead of schedule",
+      "Successfully managed client expectations on timeline",
+      "Team morale improved after addressing concerns"
     ],
     challenges: [
-      'Two team members on leave created capacity issues',
-      'Third-party integration bug caused 2-day delay',
-      'Multiple project priorities competing for attention'
+      "Two team members on leave created capacity issues",
+      "Third-party integration bug caused 2-day delay",
+      "Multiple project priorities competing for attention"
     ],
     learnings: [
-      'Cross-training team members reduces single points of failure',
-      'Buffer time in timelines helps absorb unexpected delays',
-      'Clear prioritization framework prevents context switching'
+      "Cross-training team members reduces single points of failure",
+      "Buffer time in timelines helps absorb unexpected delays",
+      "Clear prioritization framework prevents context switching"
     ],
     nextWeekFocus: [
-      'Complete UAT for SOUL CAP',
-      'Resolve third-party integration issues',
-      'Finalize design assets for Arighi Bianchi'
+      "Complete UAT for SOUL CAP",
+      "Resolve third-party integration issues",
+      "Finalize design assets for Arighi Bianchi"
     ],
     mood: 6,
     energy: 5,
-    notes: 'Busy week with multiple moving parts. Need to ensure SOUL CAP gets the attention it deserves.'
+    notes: "Busy week with multiple moving parts. Need to ensure SOUL CAP gets the attention it deserves."
   },
   {
     id: 3,
-    week: 'Week 28 (July 7-11, 2026)',
-    date: '2026-07-14',
+    week: "Week 28 (July 7-11, 2026)",
+    date: "2026-07-14",
     whatWentWell: [
-      'Planet X requirements gathering completed',
-      'Client feedback incorporated quickly on Renais',
-      'Implemented new monitoring alerts for API usage'
+      "Planet X requirements gathering completed",
+      "Client feedback incorporated quickly on Renais",
+      "Implemented new monitoring alerts for API usage"
     ],
     challenges: [
-      'Designer availability impacted design phase timeline',
-      'Competitor launched similar feature - need to reassess roadmap',
-      'Team capacity constraints with upcoming leave'
+      "Designer availability impacted design phase timeline",
+      "Competitor launched similar feature - need to reassess roadmap",
+      "Team capacity constraints with upcoming leave"
     ],
     learnings: [
-      'Competitive awareness should be built into quarterly planning',
-      'Client feedback loops work best when structured and time-boxed',
-      'Proactive resource planning prevents last-minute crunches'
+      "Competitive awareness should be built into quarterly planning",
+      "Client feedback loops work best when structured and time-boxed",
+      "Proactive resource planning prevents last-minute crunches"
     ],
     nextWeekFocus: [
-      'Address team capacity planning',
-      'Schedule competitive analysis discussion',
-      'Complete design review for Lunn's Jewellers'
+      "Address team capacity planning",
+      "Schedule competitive analysis discussion",
+      "Complete design review for Lunn's Jewellers"
     ],
     mood: 6,
     energy: 6,
-    notes: 'Steady progress across projects. Competitive landscape shifting - need to stay agile.'
+    notes: "Steady progress across projects. Competitive landscape shifting - need to stay agile."
   }
 ]
 

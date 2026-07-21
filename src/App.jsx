@@ -1,44 +1,15 @@
-import { useState, lazy, Suspense } from 'react'
-
-const Overview = lazy(() => import('./views/Overview'))
-const Projects = lazy(() => import('./views/Projects'))
-const RaidLog = lazy(() => import('./views/RaidLog'))
-const OpportunityJournal = lazy(() => import('./views/OpportunityJournal'))
-const WeeklyReflection = lazy(() => import('./views/WeeklyReflection'))
-const MonthlyReview = lazy(() => import('./views/MonthlyReview'))
-const ObjectivesFeedback = lazy(() => import('./views/ObjectivesFeedback'))
-const EvidenceAchievements = lazy(() => import('./views/EvidenceAchievements'))
-const LearningDevelopment = lazy(() => import('./views/LearningDevelopment'))
-const PromptsResources = lazy(() => import('./views/PromptsResources'))
-const SettingsBackup = lazy(() => import('./views/SettingsBackup'))
-
-const navItems = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'raid', label: 'RAID Log' },
-  { id: 'opportunity', label: 'Journal' },
-  { id: 'weekly', label: 'Weekly' },
-  { id: 'monthly', label: 'Monthly' },
-  { id: 'objectives', label: 'Objectives' },
-  { id: 'evidence', label: 'Evidence' },
-  { id: 'learning', label: 'Learning' },
-  { id: 'prompts', label: 'Prompts' },
-  { id: 'settings', label: 'Settings' }
-]
-
-const views = {
-  overview: Overview,
-  projects: Projects,
-  raid: RaidLog,
-  opportunity: OpportunityJournal,
-  weekly: WeeklyReflection,
-  monthly: MonthlyReview,
-  objectives: ObjectivesFeedback,
-  evidence: EvidenceAchievements,
-  learning: LearningDevelopment,
-  prompts: PromptsResources,
-  settings: SettingsBackup
-}
+import { useState } from 'react'
+import Overview from './views/Overview'
+import Projects from './views/Projects'
+import RaidLog from './views/RaidLog'
+import OpportunityJournal from './views/OpportunityJournal'
+import WeeklyReflection from './views/WeeklyReflection'
+import MonthlyReview from './views/MonthlyReview'
+import ObjectivesFeedback from './views/ObjectivesFeedback'
+import EvidenceAchievements from './views/EvidenceAchievements'
+import LearningDevelopment from './views/LearningDevelopment'
+import PromptsResources from './views/PromptsResources'
+import SettingsBackup from './views/SettingsBackup'
 
 function App() {
   const [activeView, setActiveView] = useState('overview')
@@ -49,8 +20,6 @@ function App() {
     month: 'short', 
     day: 'numeric' 
   })
-
-  const ActiveComponent = views[activeView] || Overview
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', color: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
@@ -74,18 +43,32 @@ function App() {
             cursor: 'pointer'
           }}
         >
-          {navItems.map(item => (
-            <option key={item.id} value={item.id} style={{ backgroundColor: '#1e2a3d' }}>
-              {item.label}
-            </option>
-          ))}
+          <option value="overview">Overview</option>
+          <option value="projects">Projects</option>
+          <option value="raid">RAID Log</option>
+          <option value="opportunity">Opportunity Journal</option>
+          <option value="weekly">Weekly Reflection</option>
+          <option value="monthly">Monthly Review</option>
+          <option value="objectives">Objectives & Feedback</option>
+          <option value="evidence">Evidence & Achievements</option>
+          <option value="learning">Learning & Development</option>
+          <option value="prompts">Prompts & Resources</option>
+          <option value="settings">Settings & Backup</option>
         </select>
       </div>
 
       <main style={{ padding: '1.5rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <Suspense fallback={<div style={{ color: '#94a3b8' }}>Loading...</div>}>
-          <ActiveComponent />
-        </Suspense>
+        {activeView === 'projects' && <Projects />}
+        {activeView === 'raid' && <RaidLog />}
+        {activeView === 'opportunity' && <OpportunityJournal />}
+        {activeView === 'weekly' && <WeeklyReflection />}
+        {activeView === 'monthly' && <MonthlyReview />}
+        {activeView === 'objectives' && <ObjectivesFeedback />}
+        {activeView === 'evidence' && <EvidenceAchievements />}
+        {activeView === 'learning' && <LearningDevelopment />}
+        {activeView === 'prompts' && <PromptsResources />}
+        {activeView === 'settings' && <SettingsBackup />}
+        {activeView === 'overview' && <Overview />}
       </main>
     </div>
   )
